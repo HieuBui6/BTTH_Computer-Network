@@ -124,6 +124,4 @@ class LSrouter(Router):
             self.flood_lsp()
     def __repr__(self):
         """Representation for debugging in the network visualizer."""
-        # TODO
-        #   NOTE This method is for your own convenience and will not be graded
-        return f"LSrouter(addr={self.addr})"
+        return str(self.forwarding_table)
