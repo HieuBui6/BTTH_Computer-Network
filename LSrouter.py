@@ -50,6 +50,36 @@ class LSrouter(Router):
         for port in self.neighbors:
             if port != expect_port:
                 self.send(port, pkt)
+    def run_dijkstra(self):
+        graph = {}
+        for router in self.tropology:
+            graph[router] = self.tropology[router]["neighbors"]
+        dist = {}
+        prev = {}
+        pq = []
+        dist[self.addr] = 0
+        heapq.heappush(pq, (0, self.addr))
+        while pq:
+            current_dist, node = heapq.heappop(pq)
+            if node not in graph[node]:
+                cost = graph[node][neighbor]
+                new_dist = current_dist + cost
+                if neighbor not in dist or new_dist < dist[neighbor]:
+                    dist[neighbor] = new_dist
+                    prev[neighbor] = node
+                    heapq.heappush(pq, (new_dist, neighbor))
+        self.forwarding_table = {}
+        for dst in dist:
+            if dst == self.addr:
+                continue
+            cur = dst
+            while prev[cur] != self.addr:
+                cur = prev[cur]
+            next_hop = cur
+            for port in self.neighbors:
+                neighbor, _ = self.neighbors[port]
+                if neighbor == next_hop:
+                    self.forwarding_table[dst] = port
     def handle_packet(self, port, packet):
         """Process incoming packet."""
         # TODO
