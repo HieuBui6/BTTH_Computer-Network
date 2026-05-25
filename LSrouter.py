@@ -121,10 +121,7 @@ class LSrouter(Router):
         """Handle current time."""
         if time_ms - self.last_time >= self.heartbeat_time:
             self.last_time = time_ms
-            # TODO
-            #   broadcast the link state of this router to all neighbors
-            pass
-
+            self.flood_lsp()
     def __repr__(self):
         """Representation for debugging in the network visualizer."""
         # TODO
