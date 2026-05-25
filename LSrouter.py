@@ -22,7 +22,7 @@ class LSrouter(Router):
         self.heartbeat_time = heartbeat_time
         self.last_time = 0
         self.neighbors = {}  # port -> (endpoint, cost)
-        self.tropology = {}  # addr -> (seq_num, neighbors)
+        self.topology = {}  # addr -> (seq_num, neighbors)
         self.forwarding_table = {}  # dst_addr -> (next_hop, cost)
         self.seq_num = 0
     
@@ -32,7 +32,7 @@ class LSrouter(Router):
         for port in self.neighbors:
             neighbor, cost = self.neighbors[port]
             neighbors_dict[neighbor] = cost
-        self.tropology[self.addr] = {
+        self.topology[self.addr] = {
             "seq" : self.seq_num,
             "neighbors" : neighbors_dict
         }
@@ -53,11 +53,11 @@ class LSrouter(Router):
     def run_dijkstra(self):
         graph = {}
 
-        for router in self.tropology:
+        for router in self.topology:
             if router not in graph:
                 graph[router] = {}
-            for neighbor in self.tropology[router]["neighbors"]:
-                cost = self.tropology[router]["neighbors"][neighbor]
+            for neighbor in self.topology[router]["neighbors"]:
+                cost = self.topology[router]["neighbors"][neighbor]
                 graph[router][neighbor] = cost
                 if neighbor not in graph:
                     graph[neighbor] = {}
@@ -69,7 +69,7 @@ class LSrouter(Router):
         heapq.heappush(pq, (0, self.addr))
         while pq:
             current_dist, node = heapq.heappop(pq)
-            if node not in graph[node]:
+            if node not in graph:
                 continue
             for neighbor in graph[node]:
                 cost = graph[node][neighbor]
@@ -85,19 +85,19 @@ class LSrouter(Router):
             if neighbor in dist:
                 self.forwarding_table[neighbor] = port
 
-            for dst in dist:
-                if dst == self.addr:
+        for dst in dist:
+            if dst == self.addr:
                     continue
-                if dst not in prev:
+            if dst not in prev:
                     continue
-                cur = dst
-                while prev[cur] != self.addr:
+            cur = dst
+            while prev[cur] != self.addr:
                     cur = prev[cur]
-                next_hop = cur
-                for port in self.neighbors:
-                    neighbor, _ = self.neighbors[port]
-                    if neighbor == next_hop:
-                        self.forwarding_table[dst] = port
+            next_hop = cur
+            for port in self.neighbors:
+                neighbor, _ = self.neighbors[port]
+                if neighbor == next_hop:
+                    self.forwarding_table[dst] = port
     def handle_packet(self, port, packet):
         """Process incoming packet."""
         if packet.is_traceroute:
@@ -110,10 +110,10 @@ class LSrouter(Router):
             src = msg["src"]
             seq = msg["seq"]
             neighbors = msg["neighbors"]
-            if src in self.tropology:
-                if seq <= self.tropology[src]["seq"]:
+            if src in self.topology:
+                if seq <= self.topology[src]["seq"]:
                     return
-            self.tropology[src] = {
+            self.topology[src] = {
                 "seq" : seq,
                 "neighbors" : neighbors
             }
