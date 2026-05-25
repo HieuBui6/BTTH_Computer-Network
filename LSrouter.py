@@ -52,8 +52,16 @@ class LSrouter(Router):
                 self.send(port, pkt)
     def run_dijkstra(self):
         graph = {}
+
         for router in self.tropology:
-            graph[router] = self.tropology[router]["neighbors"]
+            if router not in graph:
+                graph[router] = {}
+            for neighbor in self.tropology[router]["neighbors"]:
+                cost = self.tropology[router]["neighbors"][neighbor]
+                graph[router][neighbor] = cost
+                if neighbor not in graph:
+                    graph[neighbor] = {}
+                graph[neighbor][router] = cost
         dist = {}
         prev = {}
         pq = []
@@ -71,17 +79,25 @@ class LSrouter(Router):
                     prev[neighbor] = node
                     heapq.heappush(pq, (new_dist, neighbor))
         self.forwarding_table = {}
-        for dst in dist:
-            if dst == self.addr:
-                continue
-            cur = dst
-            while prev[cur] != self.addr:
-                cur = prev[cur]
-            next_hop = cur
-            for port in self.neighbors:
-                neighbor, _ = self.neighbors[port]
-                if neighbor == next_hop:
-                    self.forwarding_table[dst] = port
+
+        for port in self.neighbors:
+            neighbor, _ = self.neighbors[port]
+            if neighbor in dist:
+                self.forwarding_table[neighbor] = port
+
+            for dst in dist:
+                if dst == self.addr:
+                    continue
+                if dst not in prev:
+                    continue
+                cur = dst
+                while prev[cur] != self.addr:
+                    cur = prev[cur]
+                next_hop = cur
+                for port in self.neighbors:
+                    neighbor, _ = self.neighbors[port]
+                    if neighbor == next_hop:
+                        self.forwarding_table[dst] = port
     def handle_packet(self, port, packet):
         """Process incoming packet."""
         if packet.is_traceroute:
