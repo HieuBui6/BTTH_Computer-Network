@@ -26,8 +26,30 @@ class LSrouter(Router):
         self.forwarding_table = {}  # dst_addr -> (next_hop, cost)
         self.seq_num = 0
     
-    
-
+    def flood_lsp(self, expect_port = None):
+        self.seq_num += 1
+        neighbors_dict = {}
+        for port in self.neighbors:
+            neighbor, cost = self.neighbors[port]
+            neighbors_dict[neighbor] = cost
+        self.tropology[self.addr] = {
+            "seq" : self.seq_num,
+            "neighbors" : neighbors_dict
+        }
+        msg = {
+            "src" : self.addr,
+            "seq" : self.seq_num,
+            "neighbors" : neighbors_dict
+        }
+        pkt = Packet(
+            Packet.ROUTING,
+            self.addr,
+            None,
+            json.dumps(msg)
+        )
+        for port in self.neighbors:
+            if port != expect_port:
+                self.send(port, pkt)
     def handle_packet(self, port, packet):
         """Process incoming packet."""
         # TODO
