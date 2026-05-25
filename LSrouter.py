@@ -111,10 +111,11 @@ class LSrouter(Router):
 
     def handle_remove_link(self, port):
         """Handle removed link."""
-        # TODO
-        #   update local data structures and forwarding table
-        #   broadcast the new link state of this router to all neighbors
-        pass
+        if port not in self.neighbors:
+            return
+        del self.neighbors[port]
+        self.flood_lsp()
+        self.run_dijkstra()
 
     def handle_time(self, time_ms):
         """Handle current time."""
