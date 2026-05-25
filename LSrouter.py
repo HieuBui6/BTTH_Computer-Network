@@ -105,10 +105,9 @@ class LSrouter(Router):
             self.run_dijkstra()
     def handle_new_link(self, port, endpoint, cost):
         """Handle new link."""
-        # TODO
-        #   update local data structures and forwarding table
-        #   broadcast the new link state of this router to all neighbors
-        pass
+        self.neighbors[port] = (endpoint, cost)
+        self.flood_lsp()
+        self.run_dijkstra()
 
     def handle_remove_link(self, port):
         """Handle removed link."""
