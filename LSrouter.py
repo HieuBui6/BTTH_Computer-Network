@@ -62,6 +62,8 @@ class LSrouter(Router):
         while pq:
             current_dist, node = heapq.heappop(pq)
             if node not in graph[node]:
+                continue
+            for neighbor in graph[node]:
                 cost = graph[node][neighbor]
                 new_dist = current_dist + cost
                 if neighbor not in dist or new_dist < dist[neighbor]:
