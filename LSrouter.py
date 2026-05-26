@@ -124,6 +124,14 @@ class LSrouter(Router):
     def handle_new_link(self, port, endpoint, cost):
         """Handle new link."""
         self.neighbors[port] = (endpoint, cost)
+        neighbors_dict = {}
+        for p in self.neighbors:
+            neighbor, c = self.neighbors[p]
+            neighbors_dict[neighbor] = c
+        self.topology[self.addr] = {
+            "seq" : self.seq_num,
+            "neighbors" : neighbors_dict
+        }
         self.flood_lsp()
         self.run_dijkstra()
 
