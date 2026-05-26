@@ -140,6 +140,14 @@ class LSrouter(Router):
         if port not in self.neighbors:
             return
         del self.neighbors[port]
+        neighbors_dict = {}
+        for p in self.neighbors:
+            neighbor, c = self.neighbors[p]
+            neighbors_dict[neighbor] = c
+        self.topology[self.addr] = {
+            "seq" : self.seq_num,
+            "neighbors" : neighbors_dict
+        }
         self.flood_lsp()
         self.run_dijkstra()
 
