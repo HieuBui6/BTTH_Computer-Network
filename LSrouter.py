@@ -87,13 +87,15 @@ class LSrouter(Router):
 
         for dst in dist:
             if dst == self.addr:
-                    continue
-            if dst not in prev:
-                    continue
+                continue
+
             cur = dst
-            while prev[cur] != self.addr:
-                    cur = prev[cur]
-            next_hop = cur
+            while cur in prev and prev[cur] != self.addr:
+                cur = prev[cur]
+            if cur in prev:
+                next_hop = cur
+            else:
+                next_hop = dst
             for port in self.neighbors:
                 neighbor, _ = self.neighbors[port]
                 if neighbor == next_hop:
